@@ -9,23 +9,19 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.05, green: 0.05, blue: 0.05)
-                .ignoresSafeArea()
+            Color(red: 0.05, green: 0.05, blue: 0.05).ignoresSafeArea()
 
             if isActivated {
-                MenuView()
+                MenuOverlay()
             } else {
                 VStack {
                     Spacer()
-
                     Button(action: { showKeySheet = true }) {
                         Text("STARS")
                             .font(.system(size: 44, weight: .bold))
                             .foregroundColor(.white)
                     }
-
                     Spacer()
-
                     Text("Mod by MiniKS💤")
                         .font(.system(size: 15))
                         .foregroundColor(.white.opacity(0.55))
@@ -53,7 +49,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Bảng nhập key
+// MARK: - Key Sheet
 struct KeySheet: View {
     @Binding var inputKey: String
     @Binding var errorMessage: String
@@ -63,7 +59,6 @@ struct KeySheet: View {
     var body: some View {
         ZStack {
             Color(red: 0.05, green: 0.05, blue: 0.05).ignoresSafeArea()
-
             VStack(spacing: 20) {
                 Text("Nhập Key")
                     .font(.system(size: 26, weight: .bold))
@@ -76,9 +71,7 @@ struct KeySheet: View {
                     .padding(.horizontal, 30)
 
                 if !errorMessage.isEmpty {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.system(size: 14))
+                    Text(errorMessage).foregroundColor(.red).font(.system(size: 14))
                 }
 
                 Button(action: {
@@ -99,22 +92,19 @@ struct KeySheet: View {
                         .padding(.horizontal, 30)
                 }
 
-                Button("Đóng") { isPresented = false }
-                    .foregroundColor(.gray)
+                Button("Đóng") { isPresented = false }.foregroundColor(.gray)
             }
             .padding()
         }
     }
 }
 
-// MARK: - Popup Thành Công
+// MARK: - Success
 struct SuccessOverlay: View {
     @Binding var isPresented: Bool
-
     var body: some View {
         ZStack {
             Color.black.opacity(0.6).ignoresSafeArea()
-
             VStack(spacing: 16) {
                 Text("Thành Công")
                     .font(.system(size: 28, weight: .bold))
@@ -124,16 +114,11 @@ struct SuccessOverlay: View {
                     .font(.system(size: 15))
                     .foregroundColor(.black.opacity(0.75))
                     .multilineTextAlignment(.center)
-                    .lineSpacing(2)
 
                 Button(action: { isPresented = false }) {
                     ZStack {
-                        Circle()
-                            .fill(Color(red: 0.95, green: 0.35, blue: 0.3))
-                            .frame(width: 60, height: 60)
-                        Image(systemName: "xmark")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
+                        Circle().fill(Color(red: 0.95, green: 0.35, blue: 0.3)).frame(width: 60, height: 60)
+                        Image(systemName: "xmark").font(.system(size: 22, weight: .bold)).foregroundColor(.white)
                     }
                 }
                 .padding(.top, 4)
@@ -146,8 +131,8 @@ struct SuccessOverlay: View {
     }
 }
 
-// MARK: - Menu chính
-struct MenuView: View {
+// MARK: - Menu Overlay
+struct MenuOverlay: View {
     @State private var aimbotOn = false
     @State private var dauOn = false
     @State private var coOn = false
@@ -155,19 +140,14 @@ struct MenuView: View {
     @State private var espBoxOn = false
     @State private var aimRadius: Double = 20
     @State private var showCircle = true
-
-    // Toggle Hub
     @State private var showMenu = true
-
-    var allOn: Bool {
-        aimbotOn && dauOn && coOn && espLineOn && espBoxOn
-    }
+    @State private var menuOffset: CGSize = .zero
+    @State private var lastOffset: CGSize = .zero
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            // Vòng tròn xanh giữa màn hình
             if showCircle && showMenu {
                 Circle()
                     .stroke(Color.green, lineWidth: 3)
@@ -175,34 +155,86 @@ struct MenuView: View {
                     .allowsHitTesting(false)
             }
 
+            // Nút mở menu nhỏ
+            if !showMenu {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: { withAnimation { showMenu = true } }) {
+                            ZStack {
+                                Circle().fill(Color.green).frame(width: 52, height: 52)
+                                    .shadow(radius: 6)
+                                Image(systemName: "circle.grid.2x2.fill")
+                                    .font(.system(size: 20)).foregroundColor(.white)
+                            }
+                            .padding(.top, 50)
+                            .padding(.trailing, 16)
+                        }
+                    }
+                    Spacer()
+                }
+            }
+
+            // Menu
             if showMenu {
-                // MENU ĐẦY ĐỦ
-                VStack(spacing: 8) {
+                VStack(spacing: 1) {
                     // Header
-                    Text("FREE FIRE")
-                        .font(.system(size: 32, weight: .bold))
+                    Text("BLOCKMAN GO")
+                        .font(.system(size: 26, weight: .bold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
+                        .padding(.vertical, 12)
                         .background(Color.red)
 
-                    // Toggle Hub
+                    MenuRow(title: "Aimbot", isOn: $aimbotOn)
+                    MenuRow(title: "Đầu", isOn: $dauOn)
+                    MenuRow(title: "Cổ", isOn: $coOn)
+
+                    // Aim Radius
+                    VStack(spacing: 4) {
+                        Text("Aim Radius \(aimRadius, specifier: "%.2f")")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+
+                        HStack(spacing: 12) {
+                            Button(action: { aimRadius = max(10, aimRadius - 5) }) {
+                                Text("−").font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color.red).cornerRadius(4)
+                            }
+                            Slider(value: $aimRadius, in: 10...300).accentColor(.green)
+                            Button(action: { aimRadius = min(300, aimRadius + 5) }) {
+                                Text("+").font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color.red).cornerRadius(4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(Color.blue)
+
+                    MenuRow(title: "ESP Line", isOn: $espLineOn)
+                    MenuRow(title: "ESP Box", isOn: $espBoxOn)
+                    MenuRow(title: "Hiện vòng tròn", isOn: $showCircle)
+
+                    // Toggle Hub — nhấn đơn bật/tắt hết, nhấn đúp ẩn menu
                     Button(action: {}) {
                         Text("TOGGLE HUB")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(allOn ? Color.green : Color.orange)
+                            .padding(.vertical, 14)
+                            .background((aimbotOn && dauOn && coOn && espLineOn && espBoxOn) ? Color.green : Color.orange)
                     }
                     .onTapGesture(count: 2) {
-                        // Nhấn đúp → ẩn menu
                         withAnimation { showMenu = false }
                     }
                     .simultaneousGesture(
                         TapGesture(count: 1).onEnded {
-                            // Nhấn đơn → bật/tắt tất cả
-                            let newValue = !allOn
+                            let newValue = !(aimbotOn && dauOn && coOn && espLineOn && espBoxOn)
                             aimbotOn = newValue
                             dauOn = newValue
                             coOn = newValue
@@ -210,100 +242,41 @@ struct MenuView: View {
                             espBoxOn = newValue
                         }
                     )
-
-                    // Toggle buttons
-                    MenuButton(title: "Aimbot", isOn: $aimbotOn)
-                    MenuButton(title: "Đầu", isOn: $dauOn)
-                    MenuButton(title: "Cổ", isOn: $coOn)
-
-                    // Aim Radius slider
-                    VStack(spacing: 6) {
-                        Text("Aim Radius \(aimRadius, specifier: "%.2f")")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-
-                        HStack(spacing: 14) {
-                            Button(action: {
-                                aimRadius = max(10, aimRadius - 5)
-                            }) {
-                                Text("−")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.red)
-                                    .cornerRadius(6)
-                            }
-
-                            Slider(value: $aimRadius, in: 10...300)
-                                .accentColor(.green)
-
-                            Button(action: {
-                                aimRadius = min(300, aimRadius + 5)
-                            }) {
-                                Text("+")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.red)
-                                    .cornerRadius(6)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(Color.blue)
-
-                    MenuButton(title: "ESP Line", isOn: $espLineOn)
-                    MenuButton(title: "ESP Box", isOn: $espBoxOn)
-
-                    Spacer()
-
-                    Toggle("Hiện vòng tròn", isOn: $showCircle)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 30)
-                        .padding(.bottom, 30)
                 }
-                .transition(.opacity)
-            } else {
-                // CHẾ ĐỘ THU NHỎ — chỉ còn nút tròn
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            withAnimation { showMenu = true }
-                        }) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 56, height: 56)
-                                    .shadow(radius: 6)
-                                Image(systemName: "circle.grid.2x2.fill")
-                                    .font(.system(size: 22))
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.top, 50)
-                            .padding(.trailing, 20)
+                .frame(width: 260)
+                .background(Color.black.opacity(0.9))
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
+                .offset(menuOffset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            menuOffset = CGSize(
+                                width: lastOffset.width + value.translation.width,
+                                height: lastOffset.height + value.translation.height
+                            )
                         }
-                    }
-                    Spacer()
-                }
+                        .onEnded { _ in lastOffset = menuOffset }
+                )
             }
         }
     }
 }
 
-// MARK: - Nút menu
-struct MenuButton: View {
+// MARK: - Menu Row
+struct MenuRow: View {
     let title: String
     @Binding var isOn: Bool
-
     var body: some View {
         Button(action: { isOn.toggle() }) {
             Text(title)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
+                .padding(.vertical, 12)
                 .background(isOn ? Color.green : Color.blue)
         }
     }
