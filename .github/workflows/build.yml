@@ -1,0 +1,41 @@
+name: Build TIPA
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15.2
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: Build archive
+        run: |
+          xcodebuild -project BlockmanGoMod.xcodeproj \
+            -scheme BlockmanGoMod \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath $PWD/build/BlockmanGoMod.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_ENTITLEMENTS=""
+
+      - name: Package TIPA
+        run: |
+          mkdir -p Payload
+          cp -r build/BlockmanGoMod.xcarchive/Products/Applications/BlockmanGoMod.app Payload/
+          zip -r BlockmanGoMod.tipa Payload
+
+      - name: Upload TIPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlockmanGoMod.tipa
+          path: BlockmanGoMod.tipa
