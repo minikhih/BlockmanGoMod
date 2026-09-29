@@ -5,6 +5,7 @@ struct ContentView: View {
     @State private var showSuccess = false
     @State private var inputKey = ""
     @State private var errorMessage = ""
+    @State private var isActivated = false
 
     var body: some View {
         ZStack {
@@ -14,15 +15,21 @@ struct ContentView: View {
             VStack {
                 Spacer()
 
-                Button(action: { showKeySheet = true }) {
-                    Text("STARS")
+                Button(action: {
+                    if isActivated {
+                        isActivated = false
+                    } else {
+                        showKeySheet = true
+                    }
+                }) {
+                    Text(isActivated ? "STOP" : "STARS")
                         .font(.system(size: 44, weight: .bold))
                         .foregroundColor(.white)
                 }
 
                 Spacer()
 
-                Text("Mod by Lâm Lỏ")
+                Text("Mod by MiniKS💤")
                     .font(.system(size: 15))
                     .foregroundColor(.white.opacity(0.55))
                     .padding(.bottom, 45)
@@ -34,6 +41,7 @@ struct ContentView: View {
                 errorMessage: $errorMessage,
                 isPresented: $showKeySheet,
                 onSuccess: {
+                    isActivated = true
                     showKeySheet = false
                     showSuccess = true
                 }
