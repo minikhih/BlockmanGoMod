@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showSheet = false
+    @State private var inputText = ""
+
     var body: some View {
         ZStack {
             Color(red: 0.11, green: 0.11, blue: 0.11)
@@ -9,24 +12,49 @@ struct ContentView: View {
             VStack {
                 Spacer()
 
-                Text("BLOCKMAN GO MOD")
-                    .font(.system(size: 38, weight: .bold))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
+                Button(action: { showSheet = true }) {
+                    Text("STARS")
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundColor(.white)
+                }
 
                 Spacer()
 
-                VStack(spacing: 4) {
-                    Text("Made by iOSViet.Co")
-                        .font(.system(size: 17))
-                        .foregroundColor(.white)
+                Text("@minikshaha12 IOSviet fake")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.75))
+                    .padding(.bottom, 45)
+            }
+        }
+        .sheet(isPresented: $showSheet) {
+            InputSheet(text: $inputText, isPresented: $showSheet)
+        }
+    }
+}
 
-                    Text("cre: @minikshaha12")
-                        .font(.system(size: 15))
-                        .foregroundColor(.white.opacity(0.75))
+struct InputSheet: View {
+    @Binding var text: String
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                TextField("Nhập text", text: $text)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+
+                Text("Bạn đã nhập: \(text)")
+                    .foregroundColor(.gray)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Input")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Đóng") { isPresented = false }
                 }
-                .padding(.bottom, 45)
             }
         }
     }
